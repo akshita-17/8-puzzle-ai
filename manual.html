@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Play · 8-Puzzle</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-logo">8-puzzle<span class="dot">.</span>ai</div>
+  <nav class="site-nav">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link active" href="manual.html">Manual</a>
+    <a class="nav-link" href="ai.html">AI Solver</a>
+  </nav>
+</header>
+
+<div class="page">
+  <div class="two-col">
+
+    <!-- LEFT: Board -->
+    <div class="card board-card">
+
+      <div id="board"></div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-box">
+          <span class="val" id="moves">0</span>
+          <span class="lbl">Moves</span>
+        </div>
+        <div class="stat-box">
+          <span class="val" id="timer">0s</span>
+          <span class="lbl">Time</span>
+        </div>
+        <div class="stat-box">
+          <span class="val" id="manhattan">—</span>
+          <span class="lbl">Manhattan</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <button class="btn primary" onclick="shuffleBoard()">Shuffle</button>
+        <button class="btn" onclick="resetBoard()">Reset</button>
+        <button class="btn accent" onclick="aiFinish()">AI Finish</button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Sidebar -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Heuristic panel -->
+      <div class="card">
+        <div class="card-title">Live Heuristic</div>
+        <div class="h-legend">
+          <span><span class="dot g"></span>Correct</span>
+          <span><span class="dot r"></span>Wrong position</span>
+        </div>
+        <div class="heuristic-grid" id="heuristicGrid"></div>
+        <div class="h-stats">
+          <div>Misplaced: <strong id="misplacedCount">—</strong></div>
+          <div>Manhattan: <strong id="manhattanCount">—</strong></div>
+        </div>
+      </div>
+
+      <!-- Goal state -->
+      <div class="card">
+        <div class="card-title">Goal State</div>
+        <div class="goal-grid">
+          <div class="goal-cell">1</div>
+          <div class="goal-cell">2</div>
+          <div class="goal-cell">3</div>
+          <div class="goal-cell">4</div>
+          <div class="goal-cell">5</div>
+          <div class="goal-cell">6</div>
+          <div class="goal-cell">7</div>
+          <div class="goal-cell">8</div>
+          <div class="goal-cell empty-g"></div>
+        </div>
+      </div>
+
+      <!-- Move log -->
+      <div class="card">
+        <div class="card-title">Move Log</div>
+        <div class="log-box" id="log">
+          <div class="log-entry">Shuffle to start...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Win overlay -->
+<div class="win-overlay" id="winOverlay">
+  <div class="win-card">
+    <span class="win-icon">🎉</span>
+    <div class="win-title">Puzzle Solved!</div>
+    <div class="win-sub" id="winSub">Well done!</div>
+    <div class="win-btns">
+      <button class="btn primary" onclick="closeWin(); shuffleBoard()">Play Again</button>
+      <button class="btn" onclick="closeWin()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Scripts — order matters -->
+<script src="utils/board.js"></script>
+<script src="utils/solvable.js"></script>
+<script src="heuristics/manhattan.js"></script>
+<script src="algorithms/astar.js"></script>
+<script src="js/manual.js"></script>
+
+</body>
+</html>

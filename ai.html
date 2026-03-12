@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Solver · 8-Puzzle</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-logo">8-puzzle<span class="dot">.</span>ai</div>
+  <nav class="site-nav">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="manual.html">Manual</a>
+    <a class="nav-link active" href="ai.html">AI Solver</a>
+  </nav>
+</header>
+
+<div class="page">
+  <div class="two-col">
+
+    <!-- LEFT: Board -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <div class="card board-card">
+        <div id="board"></div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-box">
+            <span class="val" id="steps">—</span>
+            <span class="lbl">Steps</span>
+          </div>
+          <div class="stat-box">
+            <span class="val" id="nodes">—</span>
+            <span class="lbl">Nodes</span>
+          </div>
+          <div class="stat-box">
+            <span class="val" id="time">—</span>
+            <span class="lbl">ms</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <button class="btn primary" onclick="solve()">Solve</button>
+          <button class="btn" onclick="shuffleBoard()">Shuffle</button>
+          <button class="btn danger" id="stopBtn" onclick="stopPlayback()" style="display:none">Stop</button>
+        </div>
+      </div>
+
+      <!-- Playback panel -->
+      <div class="card">
+        <div class="playback-panel" id="playbackPanel">
+          <div class="pb-header">
+            <span class="pb-label">Playback</span>
+            <span class="pb-name" id="pbName">—</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="pb-controls">
+            <button class="pb-btn" onclick="pbStep(-10)" title="−10">«</button>
+            <button class="pb-btn" onclick="pbStep(-1)"  title="−1">‹</button>
+            <button class="pb-btn" id="pbPlayBtn" onclick="togglePlay()">▶</button>
+            <button class="pb-btn" onclick="pbStep(1)"   title="+1">›</button>
+            <button class="pb-btn" onclick="pbStep(10)"  title="+10">»</button>
+            <span class="pb-counter" id="pbCounter">0 / 0</span>
+          </div>
+          <div class="speed-row">
+            <span>Slow</span>
+            <input type="range" min="50" max="1000" value="350" oninput="updateSpeed(this.value)">
+            <span>Fast</span>
+            <span id="speedLabel" style="min-width:40px;text-align:right">350ms</span>
+          </div>
+        </div>
+        <!-- Placeholder when no playback -->
+        <div id="pbPlaceholder" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-3);text-align:center;padding:8px 0;">
+          Run a solver to enable playback
+        </div>
+      </div>
+
+      <!-- Log -->
+      <div class="card">
+        <div class="card-title">Log</div>
+        <div class="log-box" id="log">
+          <div class="log-entry">Shuffle and pick an algorithm to begin.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Sidebar -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Hidden select synced with card clicks -->
+      <select id="algorithm" style="display:none">
+        <option value="bfs">BFS</option>
+        <option value="dfs">DFS</option>
+        <option value="astar" selected>A*</option>
+      </select>
+
+      <!-- Algorithm cards -->
+      <div class="card">
+        <div class="card-title">Algorithm</div>
+        <div class="algo-list">
+
+          <div class="algo-item" data-algo="bfs" onclick="selectAlgo(this)">
+            <div class="algo-top">
+              <span class="algo-name">BFS</span>
+              <span class="algo-tag">optimal</span>
+            </div>
+            <div class="algo-desc">Breadth-first. Explores level by level. Guaranteed shortest path.</div>
+            <div class="algo-chips" id="chips-bfs"></div>
+          </div>
+
+          <div class="algo-item" data-algo="dfs" onclick="selectAlgo(this)">
+            <div class="algo-top">
+              <span class="algo-name">DFS</span>
+              <span class="algo-tag">depth-limited</span>
+            </div>
+            <div class="algo-desc">Depth-first with limit 50. Fast but path may not be optimal.</div>
+            <div class="algo-chips" id="chips-dfs"></div>
+          </div>
+
+          <div class="algo-item selected" data-algo="astar" onclick="selectAlgo(this)">
+            <div class="algo-top">
+              <span class="algo-name">A* — Manhattan</span>
+              <span class="algo-tag">optimal + fast</span>
+            </div>
+            <div class="algo-desc">Informed search with Manhattan heuristic. Best of both worlds.</div>
+            <div class="algo-chips" id="chips-astar"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Goal state -->
+      <div class="card">
+        <div class="card-title">Goal State</div>
+        <div class="goal-grid">
+          <div class="goal-cell">1</div>
+          <div class="goal-cell">2</div>
+          <div class="goal-cell">3</div>
+          <div class="goal-cell">4</div>
+          <div class="goal-cell">5</div>
+          <div class="goal-cell">6</div>
+          <div class="goal-cell">7</div>
+          <div class="goal-cell">8</div>
+          <div class="goal-cell empty-g"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Win overlay -->
+<div class="win-overlay" id="winOverlay">
+  <div class="win-card">
+    <span class="win-icon">✓</span>
+    <div class="win-title">Solved!</div>
+    <div class="win-sub" id="winSub">AI solved the puzzle.</div>
+    <div class="win-btns">
+      <button class="btn primary" onclick="closeWin(); shuffleBoard()">Try Again</button>
+      <button class="btn" onclick="closeWin()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Scripts — order matters -->
+<script src="utils/board.js"></script>
+<script src="heuristics/manhattan.js"></script>
+<script src="algorithms/bfs.js"></script>
+<script src="algorithms/dfs.js"></script>
+<script src="algorithms/astar.js"></script>
+<script src="js/ai.js"></script>
+
+<script>
+// Sync playback panel visibility with placeholder
+const panel = document.getElementById("playbackPanel");
+const placeholder = document.getElementById("pbPlaceholder");
+const obs = new MutationObserver(() => {
+  placeholder.style.display = panel.classList.contains("show") ? "none" : "block";
+});
+obs.observe(panel, { attributes: true });
+</script>
+
+</body>
+</html>
